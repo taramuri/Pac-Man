@@ -5,8 +5,8 @@ import math
 
 pygame.init()
 
-WIDTH = 900
-HEIGHT = 950
+WIDTH = 800
+HEIGHT = 800
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 timer = pygame.time.Clock()
 fps = 60
@@ -18,7 +18,7 @@ player_images = []
 for i in range(1, 5):
     player_images.append(pygame.transform.scale(pygame.image.load(f'assets/player/{i}.png'), (45, 45)))
 red_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/red.png'), (45, 45))
-green_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/green.png'), (45, 45))
+inky_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/green.png'), (45, 45))
 yellow_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/yellow.png'), (45, 45))
 spooked_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/powerup.png'), (45, 45))
 dead_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/dead.png'), (45, 45))
@@ -28,11 +28,11 @@ direction = 0
 red_x = 56
 red_y = 50
 red_direction = 0
-green_x = 440
-green_y = 388
-green_direction = 2
-yellow_x = 440
-yellow_y = 438
+inky_x = 370
+inky_y = 350
+inky_direction = 2
+yellow_x = 370
+yellow_y = 310
 yellow_direction = 2
 counter = 0
 flicker = False
@@ -46,10 +46,10 @@ power_counter = 0
 eaten_ghost = [False, False, False, False]
 targets = [(player_x, player_y), (player_x, player_y), (player_x, player_y), (player_x, player_y)]
 red_dead = False
-green_dead = False
+inky_dead = False
 yellow_dead = False
 red_box = False
-green_box = False
+inky_box = False
 yellow_box = False
 moving = False
 ghost_speeds = [2, 2, 2]
@@ -296,7 +296,7 @@ class Ghost:
         if self.x_pos < -30:
             self.x_pos = 900
         elif self.x_pos > 900:
-            self.x_pos -30
+            self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
     def move_red(self):
@@ -406,10 +406,10 @@ class Ghost:
             self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
-    def move_green(self):
+    def move_inky(self):
         # r, l, u, d
-        # green turns up or down at any point to pursue, but left and right only on collision
-        #green збирається повертати ліворуч або праворуч, коли це вигідно, але лише вгору чи вниз у разі зіткнення
+        # inky turns up or down at any point to pursue, but left and right only on collision
+        #inky збирається повертати ліворуч або праворуч, коли це вигідно, але лише вгору чи вниз у разі зіткнення
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -690,9 +690,9 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
                 blink_target = (player_x, player_y)
         else:
             blink_target = return_target
-        if not green.dead and not eaten_ghost[1]:
+        if not inky.dead and not eaten_ghost[1]:
             ink_target = (runaway_x, player_y)
-        elif not green.dead and eaten_ghost[1]:
+        elif not inky.dead and eaten_ghost[1]:
             if 340 < ink_x < 560 and 340 < ink_y < 500:
                 ink_target = (400, 100)
             else:
@@ -716,7 +716,7 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
                 blink_target = (player_x, player_y)
         else:
             blink_target = return_target
-        if not green.dead:
+        if not inky.dead:
             if 340 < ink_x < 560 and 340 < ink_y < 500:
                 ink_target = (400, 100)
             else:
@@ -772,7 +772,7 @@ while run:
         ghost_speeds[2] = 2    
     if red_dead:
         ghost_speeds[0] = 4
-    if green_dead:
+    if inky_dead:
         ghost_speeds[1] = 4    
     if yellow_dead:
         ghost_speeds[2] = 4
@@ -786,12 +786,12 @@ while run:
    # draw_player()
     red = Ghost(red_x, red_y, targets[0], ghost_speeds[0], red_img, red_direction, red_dead,
                    red_box, 0)
-    green = Ghost(green_x, green_y, targets[1], ghost_speeds[1], green_img, green_direction, green_dead,
-                 green_box, 1)
+    inky = Ghost(inky_x, inky_y, targets[1], ghost_speeds[1], inky_img, inky_direction, inky_dead,
+                 inky_box, 1)
     yellow = Ghost(yellow_x, yellow_y, targets[2], ghost_speeds[2], yellow_img, yellow_direction, yellow_dead,
                   yellow_box, 3)
    # draw_misc()
-    targets = get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y)
+    targets = get_targets(red_x, red_y, inky_x, inky_y, yellow_x, yellow_y)
 
     #turns_allowed = check_position(center_x, center_y)
     if moving:
@@ -800,16 +800,16 @@ while run:
             red_x, red_y, red_direction = red.move_red()
         else:
             red_x, red_y, red_direction = red.move_yellow()
-        if not green_dead and not green.in_box:
-            green_x, green_y, green_direction = green.move_green()
+        if not inky_dead and not inky.in_box:
+            inky_x, inky_y, inky_direction = inky.move_inky()
         else:
-            green_x, green_y, green_direction = green.move_yellow()
+            inky_x, inky_y, inky_direction = inky.move_yellow()
         yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
     score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
     # add to if not powerup to check if eaten ghosts
     if not powerup:
         if (player_circle.colliderect(red.rect) and not red.dead) or \
-                (player_circle.colliderect(green.rect) and not green.dead) or \
+                (player_circle.colliderect(inky.rect) and not inky.dead) or \
                 (player_circle.colliderect(yellow.rect) and not yellow.dead):
             if lives > 0:
                 lives -= 1
@@ -823,15 +823,15 @@ while run:
                 red_x = 56
                 red_y = 50
                 red_direction = 0
-                green_x = 440
-                green_y = 388
-                green_direction = 2
+                inky_x = 440
+                inky_y = 388
+                inky_direction = 2
                 yellow_x = 440
                 yellow_y = 438
                 yellow_direction = 2
                 eaten_ghost = [False, False, False, False]
                 red_dead = False
-                green_dead = False
+                inky_dead = False
                 yellow_dead = False
             else:
                 game_over = True
@@ -850,21 +850,21 @@ while run:
             red_x = 56
             red_y = 50
             red_direction = 0
-            green_x = 440
-            green_y = 388
-            green_direction = 2
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
             yellow_x = 440
             yellow_y = 438
             yellow_direction = 2
             eaten_ghost = [False, False, False, False]
             red_dead = False
-            green_dead = False
+            inky_dead = False
             yellow_dead = False
         else:
             game_over = True
             moving = False
             startup_counter = 0
-    if powerup and player_circle.colliderect(green.rect) and eaten_ghost[1] and not green.dead:
+    if powerup and player_circle.colliderect(inky.rect) and eaten_ghost[1] and not inky.dead:
         if lives > 0:
             powerup = False
             power_counter = 0
@@ -877,15 +877,15 @@ while run:
             red_x = 56
             red_y = 50
             red_direction = 0
-            green_x = 440
-            green_y = 388
-            green_direction = 2
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
             yellow_x = 440
             yellow_y = 438
             yellow_direction = 2
             eaten_ghost = [False, False, False, False]
             red_dead = False
-            green_dead = False
+            inky_dead = False
             yellow_dead = False
         else:
             game_over = True
@@ -905,15 +905,15 @@ while run:
             red_x = 56
             red_y = 50
             red_direction = 0
-            green_x = 440
-            green_y = 388
-            green_direction = 2
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
             yellow_x = 440
             yellow_y = 438
             yellow_direction = 2
             eaten_ghost = [False, False, False, False]
             red_dead = False
-            green_dead = False
+            inky_dead = False
             yellow_dead = False
         else:
             game_over = True
@@ -923,8 +923,8 @@ while run:
         red_dead = True
         eaten_ghost[0] = True
         score += (2 ** eaten_ghost.count(True)) * 100
-    if powerup and player_circle.colliderect(green.rect) and not green.dead and not eaten_ghost[1]:
-        green_dead = True
+    if powerup and player_circle.colliderect(inky.rect) and not inky.dead and not eaten_ghost[1]:
+        inky_dead = True
         eaten_ghost[1] = True
         score += (2 ** eaten_ghost.count(True)) * 100    
     if powerup and player_circle.colliderect(yellow.rect) and not yellow.dead and not eaten_ghost[3]:
@@ -956,15 +956,15 @@ while run:
                 red_x = 56
                 red_y = 50
                 red_direction = 0
-                green_x = 440
-                green_y = 388
-                green_direction = 2                
+                inky_x = 440
+                inky_y = 388
+                inky_direction = 2                
                 yellow_x = 440
                 yellow_y = 438
                 yellow_direction = 2
                 eaten_ghost = [False, False, False, False]
                 red_dead = False
-                green_dead = False
+                inky_dead = False
                 yellow_dead = False
                 score = 0
                 lives = 3
@@ -998,10 +998,15 @@ while run:
 
     if red.in_box and red_dead:
         red_dead = False
-    if green.in_box and green_dead:
-        green_dead = False
+    if inky.in_box and inky_dead:
+        inky_dead = False
     if yellow.in_box and yellow_dead:
         yellow_dead = False
 
     pygame.display.flip()
 pygame.quit()
+
+
+# sound effects, restart and winning messages
+
+
