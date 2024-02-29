@@ -1,5 +1,5 @@
 import copy
-from board import boards
+from board import board1
 import pygame
 import math
 
@@ -11,7 +11,7 @@ screen = pygame.display.set_mode([WIDTH, HEIGHT])
 timer = pygame.time.Clock()
 fps = 60
 font = pygame.font.Font('freesansbold.ttf', 20)
-level = copy.deepcopy(boards)
+level = copy.deepcopy(board1)
 color = 'blue'
 PI = math.pi
 player_images = []
@@ -968,7 +968,7 @@ while run:
                 yellow_dead = False
                 score = 0
                 lives = 3
-                level = copy.deepcopy(boards)
+                level = copy.deepcopy(board1)
                 game_over = False
                 game_won = False
 
