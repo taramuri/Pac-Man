@@ -4,15 +4,23 @@ import pygame
 import math
 import chooseboard
 import os
+from pacmantest import Pacman
 
 pygame.init()
-
 WIDTH = 900
 HEIGHT = 950
 screen_width = pygame.display.Info().current_w
 screen_height = pygame.display.Info().current_h
 window_x = (screen_width - WIDTH) // 2
 os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},0"
+
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+player_folder = os.path.join('assets', 'player')
+# Завантаження картинок
+images = [pygame.image.load(os.path.join(player_folder, f"{i}.png")) for i in range(1, 5)]
+# Приклад використання
+pacman = Pacman(450, 663, 0, 60, images, screen, 1, 55, 55)
+
 
 board = chooseboard.choose_board()
 level = chooseboard.get_board(board)
@@ -641,6 +649,7 @@ while run:
 
     screen.fill('black')
     draw_board()
+    pacman.draw(screen)
     center_x = player_x + 23
     center_y = player_y + 24
     
@@ -669,7 +678,15 @@ while run:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                pacman.change_direction('left')
+            elif event.key == pygame.K_RIGHT:
+                pacman.change_direction('right')
+            elif event.key == pygame.K_UP:
+                pacman.change_direction('up')
+            elif event.key == pygame.K_DOWN:
+                pacman.change_direction('down')
       
     if red.in_box and red_dead:
         red_dead = False

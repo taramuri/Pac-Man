@@ -1,5 +1,5 @@
 import copy
-from board import board1
+#from board import board1
 import pygame
 import math
 from scoreboard import Scoreboard
