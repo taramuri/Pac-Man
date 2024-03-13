@@ -1,13 +1,12 @@
 import copy
-
 from board import board1
 import pygame
 import math
 
 pygame.init()
 
-WIDTH = 900
-HEIGHT = 950
+WIDTH = 800
+HEIGHT = 800
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 timer = pygame.time.Clock()
 fps = 60
@@ -19,7 +18,7 @@ player_images = []
 for i in range(1, 5):
     player_images.append(pygame.transform.scale(pygame.image.load(f'assets/player/{i}.png'), (45, 45)))
 red_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/red.png'), (45, 45))
-green_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/green.png'), (45, 45))
+inky_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/green.png'), (45, 45))
 yellow_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/yellow.png'), (45, 45))
 spooked_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/powerup.png'), (45, 45))
 dead_img = pygame.transform.scale(pygame.image.load(f'assets/ghosts/dead.png'), (45, 45))
@@ -29,34 +28,36 @@ direction = 0
 red_x = 56
 red_y = 50
 red_direction = 0
-green_x = 440
-green_y = 388
-green_direction = 2
-yellow_x = 440
-yellow_y = 438
+inky_x = 370
+inky_y = 350
+inky_direction = 2
+yellow_x = 370
+yellow_y = 310
 yellow_direction = 2
 counter = 0
 flicker = False
 # R, L, U, D
 turns_allowed = [False, False, False, False]
 direction_command = 0
+player_speed = 2
 score = 0
 powerup = False
 power_counter = 0
 eaten_ghost = [False, False, False, False]
 targets = [(player_x, player_y), (player_x, player_y), (player_x, player_y), (player_x, player_y)]
 red_dead = False
-green_dead = False
+inky_dead = False
 yellow_dead = False
 red_box = False
-green_box = False
+inky_box = False
 yellow_box = False
 moving = False
 ghost_speeds = [2, 2, 2]
 startup_counter = 0
-lives = 1
+lives = 3
 game_over = False
 game_won = False
+
 
 class Ghost:
     def __init__(self, x_coord, y_coord, target, speed, img, direct, dead, box, id):
@@ -295,13 +296,13 @@ class Ghost:
         if self.x_pos < -30:
             self.x_pos = 900
         elif self.x_pos > 900:
-            self.x_pos -30
+            self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
     def move_red(self):
         # r, l, u, d
         # red is going to turn whenever colliding with walls, otherwise continue straight
-        #збирається повертати щоразу, коли зіткнеться зі стінами, інакше продовжує рух прямо
+        #збирається повертати щоразу, коли зіткнеться зі стінами, інакше продовжуйте рух прямо
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -405,10 +406,10 @@ class Ghost:
             self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
-    def move_green(self):
+    def move_inky(self):
         # r, l, u, d
-        # green turns up or down at any point to pursue, but left and right only on collision
-        #green збирається повертати ліворуч або праворуч, коли це вигідно, але лише вгору чи вниз у разі зіткнення
+        # inky turns up or down at any point to pursue, but left and right only on collision
+        #inky збирається повертати ліворуч або праворуч, коли це вигідно, але лише вгору чи вниз у разі зіткнення
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -528,6 +529,40 @@ class Ghost:
             self.x_pos - 30
         return self.x_pos, self.y_pos, self.direction
 
+"""def draw_misc():
+    score_text = font.render(f'Score: {score}', True, 'white')
+    screen.blit(score_text, (10, 920))
+    if powerup:
+        pygame.draw.circle(screen, 'blue', (140, 930), 15)
+    for i in range(lives):
+        screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))
+    if game_over:
+        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
+        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
+        gameover_text = font.render('Game over! Space bar to restart!', True, 'red')
+        screen.blit(gameover_text, (100, 300))
+    if game_won:
+        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
+        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
+        gameover_text = font.render('Victory! Space bar to restart!', True, 'green')
+        screen.blit(gameover_text, (100, 300))
+
+"""
+def check_collisions(scor, power, power_count, eaten_ghosts):
+    num1 = (HEIGHT - 50) // 32
+    num2 = WIDTH // 30
+    if 0 < player_x < 870:
+        if level[center_y // num1][center_x // num2] == 1:
+            level[center_y // num1][center_x // num2] = 0
+            scor += 10
+        if level[center_y // num1][center_x // num2] == 2:
+            level[center_y // num1][center_x // num2] = 0
+            scor += 50
+            power = True
+            power_count = 0
+            eaten_ghosts = [False, False, False, False]
+    return scor, power, power_count, eaten_ghosts
+
 
 def draw_board():
     num1 = ((HEIGHT - 50) // 32)
@@ -561,6 +596,79 @@ def draw_board():
                 pygame.draw.line(screen, 'white', (j * num2, i * num1 + (0.5 * num1)),
                                  (j * num2 + num2, i * num1 + (0.5 * num1)), 3)
 
+"""
+def draw_player():
+    # 0-RIGHT, 1-LEFT, 2-UP, 3-DOWN
+    if direction == 0:
+        screen.blit(player_images[counter // 5], (player_x, player_y))
+    elif direction == 1:
+        screen.blit(pygame.transform.flip(player_images[counter // 5], True, False), (player_x, player_y))
+    elif direction == 2:
+        screen.blit(pygame.transform.rotate(player_images[counter // 5], 90), (player_x, player_y))
+    elif direction == 3:
+        screen.blit(pygame.transform.rotate(player_images[counter // 5], 270), (player_x, player_y))
+
+def check_position(centerx, centery):
+    turns = [False, False, False, False]
+    num1 = (HEIGHT - 50) // 32
+    num2 = (WIDTH // 30)
+    num3 = 15
+    # check collisions based on center x and center y of player +/- fudge number
+    if centerx // 30 < 29:
+        if direction == 0:
+            if level[centery // num1][(centerx - num3) // num2] < 3:
+                turns[1] = True
+        if direction == 1:
+            if level[centery // num1][(centerx + num3) // num2] < 3:
+                turns[0] = True
+        if direction == 2:
+            if level[(centery + num3) // num1][centerx // num2] < 3:
+                turns[3] = True
+        if direction == 3:
+            if level[(centery - num3) // num1][centerx // num2] < 3:
+                turns[2] = True
+
+        if direction == 2 or direction == 3:
+            if 12 <= centerx % num2 <= 18:
+                if level[(centery + num3) // num1][centerx // num2] < 3:
+                    turns[3] = True
+                if level[(centery - num3) // num1][centerx // num2] < 3:
+                    turns[2] = True
+            if 12 <= centery % num1 <= 18:
+                if level[centery // num1][(centerx - num2) // num2] < 3:
+                    turns[1] = True
+                if level[centery // num1][(centerx + num2) // num2] < 3:
+                    turns[0] = True
+        if direction == 0 or direction == 1:
+            if 12 <= centerx % num2 <= 18:
+                if level[(centery + num1) // num1][centerx // num2] < 3:
+                    turns[3] = True
+                if level[(centery - num1) // num1][centerx // num2] < 3:
+                    turns[2] = True
+            if 12 <= centery % num1 <= 18:
+                if level[centery // num1][(centerx - num3) // num2] < 3:
+                    turns[1] = True
+                if level[centery // num1][(centerx + num3) // num2] < 3:
+                    turns[0] = True
+    else:
+        turns[0] = True
+        turns[1] = True
+
+    return turns
+
+
+def move_player(play_x, play_y):
+    # r, l, u, d
+    if direction == 0 and turns_allowed[0]:
+        play_x += player_speed
+    elif direction == 1 and turns_allowed[1]:
+        play_x -= player_speed
+    if direction == 2 and turns_allowed[2]:
+        play_y -= player_speed
+    elif direction == 3 and turns_allowed[3]:
+        play_y += player_speed
+    return play_x, play_y
+"""
 
 def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
     if player_x < 450:
@@ -582,9 +690,9 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
                 blink_target = (player_x, player_y)
         else:
             blink_target = return_target
-        if not green.dead and not eaten_ghost[1]:
+        if not inky.dead and not eaten_ghost[1]:
             ink_target = (runaway_x, player_y)
-        elif not green.dead and eaten_ghost[1]:
+        elif not inky.dead and eaten_ghost[1]:
             if 340 < ink_x < 560 and 340 < ink_y < 500:
                 ink_target = (400, 100)
             else:
@@ -608,7 +716,7 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
                 blink_target = (player_x, player_y)
         else:
             blink_target = return_target
-        if not green.dead:
+        if not inky.dead:
             if 340 < ink_x < 560 and 340 < ink_y < 500:
                 ink_target = (400, 100)
             else:
@@ -624,50 +732,281 @@ def get_targets(blink_x, blink_y, ink_x, ink_y, clyd_x, clyd_y):
             clyd_target = return_target
     return [blink_target, ink_target, clyd_target]
 
+
 run = True
 while run:
     timer.tick(fps)
-     
-    moving = True
+    if counter < 19:
+        counter += 1
+        if counter > 3:
+            flicker = False
+    else:
+        counter = 0
+        flicker = True
+    if powerup and power_counter < 600:
+        power_counter += 1
+    elif powerup and power_counter >= 600:
+        power_counter = 0
+        powerup = False
+        eaten_ghost = [False, False, False, False]
+    if startup_counter < 180 and not game_over and not game_won:
+        moving = False
+        startup_counter += 1
+    else:
+        moving = True
 
     screen.fill('black')
     draw_board()
     center_x = player_x + 23
     center_y = player_y + 24
+    """
+    if powerup:
+        ghost_speeds = [1, 1, 1]
+    else:
+        ghost_speeds = [2, 2, 2]
+    if eaten_ghost[0]:
+        ghost_speeds[0] = 2
+    if eaten_ghost[1]:
+        ghost_speeds[1] = 2
+    if eaten_ghost[2]:
+        ghost_speeds[2] = 2    
+    if red_dead:
+        ghost_speeds[0] = 4
+    if inky_dead:
+        ghost_speeds[1] = 4    
+    if yellow_dead:
+        ghost_speeds[2] = 4
     
-    player_circle = pygame.draw.circle(screen, 'black', (center_x, center_y), 20, 2)   
+    game_won = True
+    for i in range(len(level)):
+        if 1 in level[i] or 2 in level[i]:
+            game_won = False
+    """
+    player_circle = pygame.draw.circle(screen, 'black', (center_x, center_y), 20, 2)
+   # draw_player()
     red = Ghost(red_x, red_y, targets[0], ghost_speeds[0], red_img, red_direction, red_dead,
                    red_box, 0)
-    green = Ghost(green_x, green_y, targets[1], ghost_speeds[1], green_img, green_direction, green_dead,
-                 green_box, 1)
+    inky = Ghost(inky_x, inky_y, targets[1], ghost_speeds[1], inky_img, inky_direction, inky_dead,
+                 inky_box, 1)
     yellow = Ghost(yellow_x, yellow_y, targets[2], ghost_speeds[2], yellow_img, yellow_direction, yellow_dead,
                   yellow_box, 3)
-   
-    targets = get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y)
-    
+   # draw_misc()
+    targets = get_targets(red_x, red_y, inky_x, inky_y, yellow_x, yellow_y)
+
+    #turns_allowed = check_position(center_x, center_y)
     if moving:
+        #player_x, player_y = move_player(player_x, player_y)
         if not red_dead and not red.in_box:
             red_x, red_y, red_direction = red.move_red()
         else:
             red_x, red_y, red_direction = red.move_yellow()
-        if not green_dead and not green.in_box:
-            green_x, green_y, green_direction = green.move_green()
+        if not inky_dead and not inky.in_box:
+            inky_x, inky_y, inky_direction = inky.move_inky()
         else:
-            green_x, green_y, green_direction = green.move_yellow()
+            inky_x, inky_y, inky_direction = inky.move_yellow()
         yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
+    score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
     # add to if not powerup to check if eaten ghosts
-    
+    if not powerup:
+        if (player_circle.colliderect(red.rect) and not red.dead) or \
+                (player_circle.colliderect(inky.rect) and not inky.dead) or \
+                (player_circle.colliderect(yellow.rect) and not yellow.dead):
+            if lives > 0:
+                lives -= 1
+                startup_counter = 0
+                powerup = False
+                power_counter = 0
+                player_x = 450
+                player_y = 663
+                direction = 0
+                direction_command = 0
+                red_x = 56
+                red_y = 50
+                red_direction = 0
+                inky_x = 440
+                inky_y = 388
+                inky_direction = 2
+                yellow_x = 440
+                yellow_y = 438
+                yellow_direction = 2
+                eaten_ghost = [False, False, False, False]
+                red_dead = False
+                inky_dead = False
+                yellow_dead = False
+            else:
+                game_over = True
+                moving = False
+                startup_counter = 0
+    if powerup and player_circle.colliderect(red.rect) and eaten_ghost[0] and not red.dead:
+        if lives > 0:
+            powerup = False
+            power_counter = 0
+            lives -= 1
+            startup_counter = 0
+            player_x = 450
+            player_y = 663
+            direction = 0
+            direction_command = 0
+            red_x = 56
+            red_y = 50
+            red_direction = 0
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
+            yellow_x = 440
+            yellow_y = 438
+            yellow_direction = 2
+            eaten_ghost = [False, False, False, False]
+            red_dead = False
+            inky_dead = False
+            yellow_dead = False
+        else:
+            game_over = True
+            moving = False
+            startup_counter = 0
+    if powerup and player_circle.colliderect(inky.rect) and eaten_ghost[1] and not inky.dead:
+        if lives > 0:
+            powerup = False
+            power_counter = 0
+            lives -= 1
+            startup_counter = 0
+            player_x = 450
+            player_y = 663
+            direction = 0
+            direction_command = 0
+            red_x = 56
+            red_y = 50
+            red_direction = 0
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
+            yellow_x = 440
+            yellow_y = 438
+            yellow_direction = 2
+            eaten_ghost = [False, False, False, False]
+            red_dead = False
+            inky_dead = False
+            yellow_dead = False
+        else:
+            game_over = True
+            moving = False
+            startup_counter = 0
+   
+    if powerup and player_circle.colliderect(yellow.rect) and eaten_ghost[3] and not yellow.dead:
+        if lives > 0:
+            powerup = False
+            power_counter = 0
+            lives -= 1
+            startup_counter = 0
+            player_x = 450
+            player_y = 663
+            direction = 0
+            direction_command = 0
+            red_x = 56
+            red_y = 50
+            red_direction = 0
+            inky_x = 440
+            inky_y = 388
+            inky_direction = 2
+            yellow_x = 440
+            yellow_y = 438
+            yellow_direction = 2
+            eaten_ghost = [False, False, False, False]
+            red_dead = False
+            inky_dead = False
+            yellow_dead = False
+        else:
+            game_over = True
+            moving = False
+            startup_counter = 0
+    if powerup and player_circle.colliderect(red.rect) and not red.dead and not eaten_ghost[0]:
+        red_dead = True
+        eaten_ghost[0] = True
+        score += (2 ** eaten_ghost.count(True)) * 100
+    if powerup and player_circle.colliderect(inky.rect) and not inky.dead and not eaten_ghost[1]:
+        inky_dead = True
+        eaten_ghost[1] = True
+        score += (2 ** eaten_ghost.count(True)) * 100    
+    if powerup and player_circle.colliderect(yellow.rect) and not yellow.dead and not eaten_ghost[3]:
+        yellow_dead = True
+        eaten_ghost[3] = True
+        score += (2 ** eaten_ghost.count(True)) * 100
+
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             run = False
-        
-      
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                direction_command = 0
+            if event.key == pygame.K_LEFT:
+                direction_command = 1
+            if event.key == pygame.K_UP:
+                direction_command = 2
+            if event.key == pygame.K_DOWN:
+                direction_command = 3
+            if event.key == pygame.K_SPACE and (game_over or game_won):
+                powerup = False
+                power_counter = 0
+                lives -= 1
+                startup_counter = 0
+                player_x = 450
+                player_y = 663
+                direction = 0
+                direction_command = 0
+                red_x = 56
+                red_y = 50
+                red_direction = 0
+                inky_x = 440
+                inky_y = 388
+                inky_direction = 2                
+                yellow_x = 440
+                yellow_y = 438
+                yellow_direction = 2
+                eaten_ghost = [False, False, False, False]
+                red_dead = False
+                inky_dead = False
+                yellow_dead = False
+                score = 0
+                lives = 3
+                level = copy.deepcopy(board1)
+                game_over = False
+                game_won = False
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT and direction_command == 0:
+                direction_command = direction
+            if event.key == pygame.K_LEFT and direction_command == 1:
+                direction_command = direction
+            if event.key == pygame.K_UP and direction_command == 2:
+                direction_command = direction
+            if event.key == pygame.K_DOWN and direction_command == 3:
+                direction_command = direction
+
+    if direction_command == 0 and turns_allowed[0]:
+        direction = 0
+    if direction_command == 1 and turns_allowed[1]:
+        direction = 1
+    if direction_command == 2 and turns_allowed[2]:
+        direction = 2
+    if direction_command == 3 and turns_allowed[3]:
+        direction = 3
+
+    if player_x > 900:
+        player_x = -47
+    elif player_x < -50:
+        player_x = 897
+
     if red.in_box and red_dead:
         red_dead = False
-    if green.in_box and green_dead:
-        green_dead = False
+    if inky.in_box and inky_dead:
+        inky_dead = False
     if yellow.in_box and yellow_dead:
         yellow_dead = False
 
     pygame.display.flip()
 pygame.quit()
+
+
+# sound effects, restart and winning messages
+
+
