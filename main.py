@@ -1,18 +1,27 @@
 import copy
-
-from board import board1
+#from boards import board1
 import pygame
 import math
+import chooseboard
+import os
 
 pygame.init()
 
 WIDTH = 900
 HEIGHT = 950
+screen_width = pygame.display.Info().current_w
+screen_height = pygame.display.Info().current_h
+window_x = (screen_width - WIDTH) // 2
+os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},0"
+
+board = chooseboard.choose_board()
+level = chooseboard.get_board(board)
+
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 timer = pygame.time.Clock()
 fps = 60
 font = pygame.font.Font('freesansbold.ttf', 20)
-level = copy.deepcopy(board1)
+
 color = 'blue'
 PI = math.pi
 player_images = []
@@ -641,7 +650,7 @@ while run:
     green = Ghost(green_x, green_y, targets[1], ghost_speeds[1], green_img, green_direction, green_dead,
                  green_box, 1)
     yellow = Ghost(yellow_x, yellow_y, targets[2], ghost_speeds[2], yellow_img, yellow_direction, yellow_dead,
-                  yellow_box, 3)
+                  yellow_box, 2)
    
     targets = get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y)
     
