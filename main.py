@@ -1,5 +1,4 @@
 import copy
-#from boards import board1
 import pygame
 import math
 import chooseboard
@@ -16,68 +15,6 @@ os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},0"
 
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 player_folder = os.path.join('assets', 'player')
-# Завантаження картинок
-# images = [pygame.image.load(os.path.join(player_folder, f"{i}.png")) for i in range(1, 5)]
-# Приклад використання
-# pacman_images = [
-#     "assets/player/1.png",
-#     "assets/player/2.png",
-#     "assets/player/3.png",
-#     "assets/player/4.png"
-# ]
-
-# Завантаження зображень з файлів
-# loaded_images = []
-# for image_path in pacman_images:
-#     image = pygame.image.load(image_path)
-#     loaded_images.append(image)
-
-# # Передача завантажених зображень у конструктор класу Pacman
-# pacman = Pacman(loaded_images)
-
-# pacman.player_x = 450
-# pacman.player_y = 663
-# pacman.direction = 0
-# pacman.fps = 60
-# pacman.player_images = images
-# pacman.screen = screen
-# pacman.player_speed = 1
-# pacman.redy_x = 55
-# pacman.redy_y = 55
-# pacman.redy_direction = 0
-# pacman.yellow_x = 440
-# pacman.yellow_y = 438
-# pacman.yellow_direction = 2
-# pacman.green_x = 440
-# pacman.green_y = 388
-# pacman.green_direction = 2
-# pacman.clyde_x = 440
-# pacman.clyde_y = 438
-# pacman.clyde_direction = 2
-# pacman.counter = 0
-# pacman.flicker = False
-# pacman.turns_allowed = [False, False, False, False]
-# pacman.direction_command = 0
-# pacman.score = 0
-# pacman.powerup = False
-# pacman.power_counter = 0
-# pacman.eaten_ghost = [False, False, False, False]
-# pacman.targets = [(pacman.player_x, pacman.player_y)] * 4
-# pacman.red_dead = False
-# pacman.green_dead = False
-# pacman.clyde_dead = False
-# pacman.yellow_dead = False
-# pacman.redy_box = False
-# pacman.green_box = False
-# pacman.clyde_box = False
-# pacman.yellow_box = False
-# pacman.moving = False
-# pacman.ghost_speeds = [2, 2, 2, 2]
-# pacman.startup_counter = 0
-# pacman.lives = 3
-# pacman.game_over = False
-# pacman.game_won = False
-
 
 board = chooseboard.choose_board()
 level = chooseboard.get_board(board)
@@ -112,7 +49,6 @@ yellow_y = 438
 yellow_direction = 2
 counter = 0
 flicker = False
-# R, L, U, D
 turns_allowed = [False, False, False, False]
 direction_command = 0
 score = 0
@@ -129,7 +65,7 @@ yellow_box = False
 moving = False
 ghost_speeds = [1, 2, 3]
 startup_counter = 0
-lives = 1
+lives = 3
 game_over = False
 game_won = False
 
@@ -160,7 +96,6 @@ class Ghost:
         return ghost_rect
 
     def check_collisions(self):
-        # R, L, U, D
         num1 = ((HEIGHT - 50) // 32)
         num2 = (WIDTH // 30)
         num3 = 15
@@ -234,9 +169,6 @@ class Ghost:
         return self.turns, self.in_box
 
     def move_yellow(self):
-        # r, l, u, d
-        # yellow is going to turn whenever advantageous for pursuit
-        #жовтий збирається повернути, коли буде вигідно для переслідування
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -374,9 +306,6 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
     def move_red(self):
-        # r, l, u, d
-        # red is going to turn whenever colliding with walls, otherwise continue straight
-        #збирається повертати щоразу, коли зіткнеться зі стінами, інакше продовжує рух прямо
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -481,9 +410,6 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
     def move_green(self):
-        # r, l, u, d
-        # green turns up or down at any point to pursue, but left and right only on collision
-        #green збирається повертати ліворуч або праворуч, коли це вигідно, але лише вгору чи вниз у разі зіткнення
         if self.direction == 0:
             if self.target[0] > self.x_pos and self.turns[0]:
                 self.x_pos += self.speed
@@ -604,7 +530,7 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
 
-def draw_misc(): #WIN OR NO
+def draw_misc():
     score_text = font.render(f'SCORE: {score}', True, 'white')  
     screen.blit(score_text, (10, 920))
     if powerup:
@@ -641,7 +567,6 @@ def check_collisions(scor, power, power_count, eaten_ghosts):
     return scor, power, power_count, eaten_ghosts
 
 def draw_player():
-    # 0-RIGHT, 1-LEFT, 2-UP, 3-DOWN
     if direction == 0:
         screen.blit(player_images[counter // 5], (player_x, player_y))
     elif direction == 1:
@@ -700,7 +625,6 @@ def check_position(centerx, centery):
     return turns
        
 def move_player(play_x, play_y):
-    # r, l, u, d
     if direction == 0 and turns_allowed[0]:
         play_x += player_speed
     elif direction == 1 and turns_allowed[1]:
@@ -832,12 +756,8 @@ while run:
 
     screen.fill('black')
     draw_board()
-    #pacman.update()  # Оновлення координат та напрямку пакмена
-    #pacman.draw(screen)  
     center_x = player_x + 23
     center_y = player_y + 24
-
-
 
     if powerup:
         ghost_speeds = [1, 1, 1, 1]
@@ -1156,14 +1076,3 @@ while run:
     pygame.display.flip()
 pygame.quit()
 
-
-
-#     if red.in_box and red_dead:
-#         red_dead = False
-#     if green.in_box and green_dead:
-#         green_dead = False
-#     if yellow.in_box and yellow_dead:
-#         yellow_dead = False
-
-#     pygame.display.flip()
-# pygame.quit()
