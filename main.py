@@ -127,7 +127,7 @@ red_box = False
 green_box = False
 yellow_box = False
 moving = False
-ghost_speeds = [2, 2, 2]
+ghost_speeds = [1, 2, 3]
 startup_counter = 0
 lives = 1
 game_over = False
@@ -604,23 +604,26 @@ class Ghost:
         return self.x_pos, self.y_pos, self.direction
 
 
-def draw_misc(): #win or no
-    score_text = font.render(f'Score: {score}', True, 'white')
+def draw_misc(): #WIN OR NO
+    score_text = font.render(f'SCORE: {score}', True, 'white')  
     screen.blit(score_text, (10, 920))
     if powerup:
-        pygame.draw.circle(screen, 'blue', (140, 930), 15)
+        pygame.draw.circle(screen, 'blue', (140, 930), 15)  
     for i in range(lives):
-        screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))
+        screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))  
     if game_over:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
-        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render('Game over! Space bar to restart!', True, 'red')
-        screen.blit(gameover_text, (100, 300))
+        pygame.draw.rect(screen, 'blue', [50, 200, 800, 300], border_radius=10) 
+        pygame.draw.rect(screen, 'black', [70, 220, 760, 260], border_radius=5)  
+        gameover_text = font.render('GAME OVER! SCORE: ' + str(score) + ' SPACE BAR TO RESTART!', True, 'white')  
+        text_rect = gameover_text.get_rect(center=(450, 350))  
+        screen.blit(gameover_text, text_rect)
     if game_won:
-        pygame.draw.rect(screen, 'white', [50, 200, 800, 300],0, 10)
-        pygame.draw.rect(screen, 'dark gray', [70, 220, 760, 260], 0, 10)
-        gameover_text = font.render('Victory! Space bar to restart!', True, 'green')
-        screen.blit(gameover_text, (100, 300))
+        pygame.draw.rect(screen, 'blue', [50, 200, 800, 300], border_radius=10)  
+        pygame.draw.rect(screen, 'black', [70, 220, 760, 260], border_radius=5)  
+        gameover_text = font.render('VICTORY! SCORE: ' + str(score) + ' SPACE BAR TO RESTART!', True, 'white')  
+        text_rect = gameover_text.get_rect(center=(450, 350))  
+        screen.blit(gameover_text, text_rect)
+
 
 def check_collisions(scor, power, power_count, eaten_ghosts):
     num1 = (HEIGHT - 50) // 32
@@ -695,7 +698,7 @@ def check_position(centerx, centery):
         turns[1] = True
 
     return turns
-
+       
 def move_player(play_x, play_y):
     # r, l, u, d
     if direction == 0 and turns_allowed[0]:
@@ -743,9 +746,6 @@ def draw_board():
 
 
 def get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y):
-    red_target = (0, 0)
-    green_target = (0, 0)
-    yellow_target = (0, 0)
     if player_x < 450:
         runaway_x = 900
     else:
@@ -774,6 +774,15 @@ def get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y):
                 green_target = (player_x, player_y)
         else:
             green_target = return_target    
+        if not yellow.dead and not eaten_ghost[1]:
+            yellow_target = (runaway_x, player_y)
+        elif not yellow.dead and eaten_ghost[1]:
+            if 340 < yellow_x < 560 and 340 <yellow_y < 500:
+                yellow_target = (400, 100)
+            else:
+                yellow_target = (player_x, player_y)
+        else:
+            yellow_target = return_target    
     else:
         if not red.dead:
             if 340 < red_x < 560 and 340 < red_y < 500:
@@ -795,7 +804,7 @@ def get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y):
             else:
                 yellow_target = (player_x, player_y)
         else:
-            green_target = return_target    
+             yellow_target = return_target    
     return [red_target, green_target, yellow_target]
 
 run = True
@@ -869,6 +878,7 @@ while run:
     
     turns_allowed = check_position(center_x, center_y)
     if moving:
+        player_x, player_y = move_player(player_x, player_y)
         if not red_dead and not red.in_box:
             red_x, red_y, red_direction = red.move_red()
         else:
@@ -877,8 +887,12 @@ while run:
             green_x, green_y, green_direction = green.move_green()
         else:
             green_x, green_y, green_direction = green.move_yellow()
-        yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
-    # add to if not powerup to check if eaten ghosts
+        if not yellow_dead and not yellow.in_box:
+            yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
+        else:
+            yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
+        score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
+
     
 
     if not powerup:
@@ -1067,6 +1081,71 @@ while run:
                     direction_command = direction
 
       
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_RIGHT:
+                direction_command = 0
+            if event.key == pygame.K_LEFT:
+                direction_command = 1
+            if event.key == pygame.K_UP:
+                direction_command = 2
+            if event.key == pygame.K_DOWN:
+                direction_command = 3
+            if event.key == pygame.K_SPACE and (game_over or game_won):
+                powerup = False
+                power_counter = 0
+                lives -= 1
+                startup_counter = 0
+                player_x = 450
+                player_y = 663
+                direction = 0
+                direction_command = 0
+                red_x = 56
+                red_y = 58
+                red_direction = 0
+                green_x = 440
+                green_y = 388
+                green_direction = 2
+                yellow_x = 440
+                yellow_y = 438
+                yellow_direction = 2
+                eaten_ghost = [False, False, False, False]
+                red_dead = False
+                green_dead = False
+                clyde_dead = False
+                yellow_dead = False
+                score = 0
+                lives = 3
+                level = copy.deepcopy(board)
+                game_over = False
+                game_won = False
+
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_RIGHT and direction_command == 0:
+                direction_command = direction
+            if event.key == pygame.K_LEFT and direction_command == 1:
+                direction_command = direction
+            if event.key == pygame.K_UP and direction_command == 2:
+                direction_command = direction
+            if event.key == pygame.K_DOWN and direction_command == 3:
+                direction_command = direction
+
+    if direction_command == 0 and turns_allowed[0]:
+        direction = 0
+    if direction_command == 1 and turns_allowed[1]:
+        direction = 1
+    if direction_command == 2 and turns_allowed[2]:
+        direction = 2
+    if direction_command == 3 and turns_allowed[3]:
+        direction = 3
+
+    if player_x > 900:
+        player_x = -47
+    elif player_x < -50:
+        player_x = 897
+
     if red.in_box and red_dead:
         red_dead = False
     if green.in_box and green_dead:
@@ -1076,3 +1155,15 @@ while run:
 
     pygame.display.flip()
 pygame.quit()
+
+
+
+#     if red.in_box and red_dead:
+#         red_dead = False
+#     if green.in_box and green_dead:
+#         green_dead = False
+#     if yellow.in_box and yellow_dead:
+#         yellow_dead = False
+
+#     pygame.display.flip()
+# pygame.quit()
