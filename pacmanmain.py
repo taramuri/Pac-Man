@@ -3,7 +3,6 @@ import pygame
 import math
 import chooseboard
 import os
-from pacmantest import Pacman  # Importing Pacman class from pacmantest module
 from scoreboard import Scoreboard  # Importing Scoreboard class from scoreboard module
 
 # Initializing Pygame
@@ -1119,6 +1118,6 @@ while run:
 
     # Update display
     pygame.display.flip()
-       
+
 # Quit pygame if the game loop is exited
 pygame.quit()
