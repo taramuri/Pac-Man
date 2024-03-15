@@ -4,6 +4,7 @@ import math
 import chooseboard
 import os
 from pacmantest import Pacman
+from scoreboard import Scoreboard
 
 pygame.init()
 WIDTH = 900
@@ -13,7 +14,8 @@ screen_height = pygame.display.Info().current_h
 window_x = (screen_width - WIDTH) // 2
 os.environ['SDL_VIDEO_WINDOW_POS'] = f"{window_x},0"
 
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+scoreboard = Scoreboard(x=0, y=10)
+
 player_folder = os.path.join('assets', 'player')
 
 board = chooseboard.choose_board()
@@ -535,7 +537,7 @@ def draw_misc():
     screen.blit(score_text, (10, 920))
     if powerup:
         pygame.draw.circle(screen, 'blue', (140, 930), 15)  
-    for i in range(lives):
+    for i in range(scoreboard.lives):
         screen.blit(pygame.transform.scale(player_images[0], (30, 30)), (650 + i * 40, 915))  
     if game_over:
         pygame.draw.rect(screen, 'blue', [50, 200, 800, 300], border_radius=10) 
@@ -782,8 +784,6 @@ while run:
     for i in range(len(level)):
         if 1 in level[i] or 2 in level[i]:
             game_won = False
-
-
     
     player_circle = pygame.draw.circle(screen, 'black', (center_x, center_y), 20, 2)  
     draw_player() 
@@ -793,6 +793,7 @@ while run:
                  green_box, 1)
     yellow = Ghost(yellow_x, yellow_y, targets[2], ghost_speeds[2], yellow_img, yellow_direction, yellow_dead,
                   yellow_box, 2)
+    
     draw_misc()
     targets = get_targets(red_x, red_y, green_x, green_y, yellow_x, yellow_y)
     
@@ -812,6 +813,9 @@ while run:
         else:
             yellow_x, yellow_y, yellow_direction = yellow.move_yellow()
         score, powerup, power_counter, eaten_ghost = check_collisions(score, powerup, power_counter, eaten_ghost)
+        scoreboard.increase_score(score - scoreboard.score)
+        scoreboard.draw(screen)
+        pygame.display.update()
 
     
 
@@ -819,7 +823,8 @@ while run:
         if (player_circle.colliderect(red.rect) and not red.dead) or \
                 (player_circle.colliderect(green.rect) and not green.dead) or \
                 (player_circle.colliderect(yellow.rect) and not yellow.dead):
-            if lives > 0:
+            if scoreboard.lives > 0:
+                scoreboard.decrease_lives()
                 lives -= 1
                 startup_counter = 0
                 powerup = False
@@ -943,9 +948,6 @@ while run:
         eaten_ghost[2] = True
         score += (2 ** eaten_ghost.count(True)) * 100
 
-
-
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
@@ -958,7 +960,7 @@ while run:
                     direction_command = 2
                 if event.key == pygame.K_DOWN:
                     direction_command = 3
-                if event.key == pygame.K_SPACE and (game_over or game_won):
+                if event.key == pygame.K_SPACE and (game_over or game_won):                    
                     powerup = False
                     power_counter = 0
                     lives -= 1
@@ -986,7 +988,7 @@ while run:
                     yellow_dead = False
                     score = 0
                     lives = 3
-                    level = copy.deepcopy(boards)
+                    level = chooseboard.get_board(board)                    
                     game_over = False
                     game_won = False
 
@@ -1038,7 +1040,9 @@ while run:
                 yellow_dead = False
                 score = 0
                 lives = 3
-                level = copy.deepcopy(board)
+                board = chooseboard.choose_board()
+                level = chooseboard.get_board(board)
+                screen = pygame.display.set_mode([WIDTH, HEIGHT])
                 game_over = False
                 game_won = False
 

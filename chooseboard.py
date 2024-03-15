@@ -41,7 +41,7 @@ def choose_board():
 
     # Adding text
     font = pygame.font.SysFont(None, 36)
-    text = font.render("Оберіть карту для гри", True, WHITE)
+    text = font.render("Select a board to play", True, WHITE)
     text_rect = text.get_rect(center=(WIDTH // 2, 100))
     screen.blit(text, text_rect)
     
