@@ -1,7 +1,7 @@
 import unittest
-from pacmanmain import check_collisions
+from pacmanmain import check_collisions, move_player
 
-class TestGameCounters(unittest.TestCase): #Перші прото тести
+class TestGameCounters(unittest.TestCase): #Перші промті тести
     def test_counter_update(self):
         # Початкові значення лічильників
         scor = 0
@@ -23,6 +23,19 @@ class TestGameCounters(unittest.TestCase): #Перші прото тести
 
         # Перевірка, чи список "eaten_ghosts" оновлено вірно
         self.assertEqual(updated_eaten_ghosts, [False, False, False, False])  # Очікуємо, що eaten_ghosts залишиться незмінним на цьому кроці
+
+class TestPlayerMovement(unittest.TestCase):
+    def test_move_player_right(self):
+        # Arrange
+        player_x = 450  # Початкова позиція гравця по горизонталі
+        player_y = 663  # Початкова позиція гравця по вертикалі
+
+        new_player_x, new_player_y = move_player(player_x, player_y)  # Виклик функції для переміщення гравця
+        
+        # Assert
+        self.assertEqual(new_player_x, player_x)  # Перевірка, чи гравець перемістився по горизонталі
+        self.assertEqual(new_player_y, player_y)  # Перевірка, чи гравець не перемістився по вертикалі
+
 
 if __name__ == '__main__':
     unittest.main()
